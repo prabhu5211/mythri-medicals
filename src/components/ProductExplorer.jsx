@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 
 const ProductExplorer = () => {
   const [selectedFilters, setSelectedFilters] = useState([]);
@@ -47,7 +47,7 @@ const ProductExplorer = () => {
   };
 
   return (
-    <div className="flex p-6">
+    <div className="pt-16 flex p-6"> {/* Added pt-16 for space below the navbar */}
       {/* Sidebar */}
       <div className="w-1/4 p-4 bg-gray-100">
         <h3 className="text-xl font-semibold mb-4">Instrument Type</h3>

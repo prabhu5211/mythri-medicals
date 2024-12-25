@@ -24,34 +24,48 @@ const HeroSection = () => {
     },
   ];
 
-  const [currentIndex, setCurrentIndex] = useState(0); // Start at the first slide
+  const [currentIndex, setCurrentIndex] = useState(1); // Start at the first real slide
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Set up the continuous slide change
-  const handleSlideChange = (direction) => {
-    if (isAnimating) return;
+  // Duplicate slides for seamless looping
+  const slidesWithClones = [
+    slides[slides.length - 1], // Add last slide at the beginning
+    ...slides,
+    slides[0], // Add first slide at the end
+  ];
 
-    setIsAnimating(true);
-    let newIndex;
+  // Automatically transition slides
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isAnimating) {
+        setIsAnimating(true);
+        setCurrentIndex((prevIndex) => prevIndex + 1);
+      }
+    }, 1000); // Change slide every 1 second
 
-    if (direction === "next") {
-      newIndex = currentIndex === slides.length - 1 ? 0 : currentIndex + 1;
-    } else if (direction === "prev") {
-      newIndex = currentIndex === 0 ? slides.length - 1 : currentIndex - 1;
-    }
+    return () => clearInterval(interval);
+  }, [isAnimating]);
 
-    setCurrentIndex(newIndex);
-  };
-
-  // Handle animation reset after slide transition
+  // Handle transition reset for seamless looping
   useEffect(() => {
     if (!isAnimating) return;
+
     const timeout = setTimeout(() => {
       setIsAnimating(false);
+
+      // Reset to the first real slide if we're at the end
+      if (currentIndex === slidesWithClones.length - 1) {
+        setCurrentIndex(1);
+      }
+
+      // Reset to the last real slide if we're at the beginning
+      if (currentIndex === 0) {
+        setCurrentIndex(slides.length);
+      }
     }, 700); // Match the CSS transition duration
 
     return () => clearTimeout(timeout);
-  }, [currentIndex, isAnimating]);
+  }, [currentIndex, isAnimating, slides.length, slidesWithClones.length]);
 
   return (
     <section className="relative h-screen overflow-hidden">
@@ -60,15 +74,15 @@ const HeroSection = () => {
         className="flex h-full transition-transform duration-700 ease-in-out"
         style={{
           transform: `translateX(-${currentIndex * 100}%)`,
+          transition: isAnimating ? "transform 0.7s ease-in-out" : "none",
         }}
       >
-        {slides.map((slide, index) => (
+        {slidesWithClones.map((slide, index) => (
           <div
             key={index}
             className="w-full h-full bg-cover bg-center flex-shrink-0"
             style={{ backgroundImage: `url('${slide.image}')` }}
           >
-            {/* Overlay */}
             <div className="flex items-center justify-center h-full bg-black bg-opacity-50">
               <div className="text-center text-white p-8">
                 <h1 className="text-4xl font-bold">{slide.title}</h1>
@@ -77,22 +91,6 @@ const HeroSection = () => {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="absolute bottom-5 w-full flex justify-center items-center space-x-4">
-        <button
-          onClick={() => handleSlideChange("prev")}
-          className="text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-80"
-        >
-          &lt;
-        </button>
-        <button
-          onClick={() => handleSlideChange("next")}
-          className="text-white bg-black bg-opacity-50 px-4 py-2 rounded-full hover:bg-opacity-80"
-        >
-          &gt;
-        </button>
       </div>
     </section>
   );
